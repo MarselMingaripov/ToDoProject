@@ -1,12 +1,13 @@
 package com.example.todo.security.model;
 
 
+import com.example.todo.model.Task;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.HashSet;
 import java.util.Set;
@@ -18,15 +19,12 @@ uniqueConstraints = {
         @UniqueConstraint(columnNames = "email")
 })
 @Data
-@NoArgsConstructor
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @NotBlank
-    @Size(max = 20)
+    @NotNull
     private String username;
 
     @NotBlank
@@ -34,8 +32,6 @@ public class User {
     @Email
     private String email;
 
-    @NotBlank
-    @Size(max = 30)
     private String password;
 
     @ManyToMany(fetch = FetchType.LAZY)
@@ -44,9 +40,18 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
 
-    public User(String username, String email, String password) {
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "user_tasks",
+    joinColumns = @JoinColumn(name = "user_id"),
+    inverseJoinColumns = @JoinColumn(name = "task_id"))
+    private Set<Task> tasks = new HashSet<>();
+
+    public User() {
+    }
+
+    public User(String username, String password, String email) {
         this.username = username;
-        this.email = email;
         this.password = password;
+        this.email = email;
     }
 }

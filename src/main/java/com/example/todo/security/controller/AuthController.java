@@ -1,17 +1,20 @@
 package com.example.todo.security.controller;
 
+import com.example.todo.security.jwt.JwtUtils;
 import com.example.todo.security.model.Erole;
 import com.example.todo.security.model.Role;
 import com.example.todo.security.model.User;
-import com.example.todo.security.repository.RoleRepository;
-import com.example.todo.security.repository.UserRepository;
-import com.example.todo.security.jwt.JwtUtils;
 import com.example.todo.security.polo.JwtResponse;
 import com.example.todo.security.polo.LoginRequest;
 import com.example.todo.security.polo.MessageResponse;
 import com.example.todo.security.polo.SignupRequest;
+import com.example.todo.security.repository.RoleRepository;
+import com.example.todo.security.repository.UserRepository;
 import com.example.todo.security.service.UserDetailsImpl;
-import lombok.RequiredArgsConstructor;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,17 +23,16 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-
 import javax.validation.Valid;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/auth")
-@RequiredArgsConstructor
+@CrossOrigin(origins = "*", maxAge = 3600)
+@Tag(name = "API для регистрации и авторизации")
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
@@ -39,11 +41,25 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
 
-    @PostMapping("/signin")
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+    public AuthController(AuthenticationManager authenticationManager, UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder, JwtUtils jwtUtils) {
+        this.authenticationManager = authenticationManager;
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtUtils = jwtUtils;
+    }
 
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+    @PostMapping("/signin")
+    @Operation(summary = "авторизация")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Авторизация успешна")
+    })
+    public ResponseEntity<?> authUser(@RequestBody LoginRequest loginRequest) {
+
+        Authentication authentication = authenticationManager
+                .authenticate(new UsernamePasswordAuthenticationToken(
+                        loginRequest.getUsername(),
+                        loginRequest.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtils.generateJwtToken(authentication);
@@ -59,58 +75,64 @@ public class AuthController {
                 userDetails.getEmail(),
                 roles));
     }
-
     @PostMapping("/signup")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
-        if (userRepository.existsByUsername(signUpRequest.getUsername())) {
+    @Operation(summary = "регистрация")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Регистрация успешна")
+    })
+    public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signupRequest) {
+        if (userRepository.existsByUsername(signupRequest.getUsername())) {
             return ResponseEntity
                     .badRequest()
-                    .body(new MessageResponse("Error: Username is already taken!"));
+                    .body(new MessageResponse("Error: Username is exist"));
         }
 
-        if (userRepository.existsByEmail(signUpRequest.getEmail())) {
+        if (userRepository.existsByEmail(signupRequest.getEmail())) {
             return ResponseEntity
                     .badRequest()
-                    .body(new MessageResponse("Error: Email is already in use!"));
+                    .body(new MessageResponse("Error: Email is exist"));
         }
 
-        // Create new user's account
-        User user = new User(signUpRequest.getUsername(),
-                signUpRequest.getEmail(),
-                passwordEncoder.encode(signUpRequest.getPassword()));
+        User user = new User(signupRequest.getUsername(),
+                passwordEncoder.encode(signupRequest.getPassword()),
+                signupRequest.getEmail());
 
-        Set<String> strRoles = signUpRequest.getRoles();
+        Set<String> reqRoles = signupRequest.getRoles();
         Set<Role> roles = new HashSet<>();
 
-        if (strRoles == null) {
-            Role userRole = roleRepository.findByName(Erole.ROLE_USER)
-                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+        if (reqRoles == null) {
+            Role userRole = roleRepository
+                    .findByName(Erole.ROLE_USER)
+                    .orElseThrow(() -> new RuntimeException("Error, Role USER is not found"));
             roles.add(userRole);
         } else {
-            strRoles.forEach(role -> {
-                switch (role) {
-                    case "admin" -> {
-                        Role adminRole = roleRepository.findByName(Erole.ROLE_ADMIN)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+            reqRoles.forEach(r -> {
+                switch (r) {
+                    case "admin":
+                        Role adminRole = roleRepository
+                                .findByName(Erole.ROLE_ADMIN)
+                                .orElseThrow(() -> new RuntimeException("Error, Role ADMIN is not found"));
                         roles.add(adminRole);
-                    }
-                    case "mod" -> {
-                        Role modRole = roleRepository.findByName(Erole.ROLE_MODERATOR)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+
+                        break;
+                    case "mod":
+                        Role modRole = roleRepository
+                                .findByName(Erole.ROLE_MODERATOR)
+                                .orElseThrow(() -> new RuntimeException("Error, Role MODERATOR is not found"));
                         roles.add(modRole);
-                    }
-                    default -> {
-                        Role userRole = roleRepository.findByName(Erole.ROLE_USER)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+
+                        break;
+
+                    default:
+                        Role userRole = roleRepository
+                                .findByName(Erole.ROLE_USER)
+                                .orElseThrow(() -> new RuntimeException("Error, Role USER is not found"));
                         roles.add(userRole);
-                    }
                 }
             });
         }
-
         user.setRoles(roles);
         userRepository.save(user);
-        return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+        return ResponseEntity.ok(new MessageResponse("User CREATED"));
     }
-
 }
