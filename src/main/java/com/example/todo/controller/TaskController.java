@@ -77,7 +77,7 @@ public class TaskController {
 
     @PostMapping("markAsComplited/{username}/{taskname}")
     @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<CompletedTask> markTaskAsComplited(@RequestParam String username, @RequestParam String taskname) throws UserNotFoundException, UserDontHasTaskException {
+    public ResponseEntity<CompletedTask> markTaskAsComplited(@RequestParam String username, @RequestParam String taskname) throws UserNotFoundException, UserDontHasTaskException, TaskNotFoundException {
         return ResponseEntity.ok().body(completedTaskService.markAsCompleted(username, taskname));
     }
 

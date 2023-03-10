@@ -3,7 +3,9 @@ package com.example.todo.service.impl;
 import com.example.todo.model.Task;
 import com.example.todo.service.ValidationService;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
 
+@Service
 public class ValidationServiceImpl implements ValidationService {
     @Override
     public boolean validate(Task task) {

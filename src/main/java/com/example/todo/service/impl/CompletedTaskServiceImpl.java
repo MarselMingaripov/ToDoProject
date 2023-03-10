@@ -1,5 +1,6 @@
 package com.example.todo.service.impl;
 
+import com.example.todo.exception.TaskNotFoundException;
 import com.example.todo.exception.UserDontHasTaskException;
 import com.example.todo.exception.UserNotFoundException;
 import com.example.todo.model.CompletedTask;
@@ -20,9 +21,12 @@ public class CompletedTaskServiceImpl implements CompletedTaskService {
     private final UserRepository userRepository;
 
     @Override
-    public CompletedTask markAsCompleted(String username, String taskname) throws UserNotFoundException, UserDontHasTaskException {
+    public CompletedTask markAsCompleted(String username, String taskname) throws UserNotFoundException, UserDontHasTaskException, TaskNotFoundException {
         if (userRepository.existsByUsername(username)) {
             User user = userRepository.findUserByUsername(username);
+            if (!taskRepository.existsByName(taskname)){
+                throw new TaskNotFoundException("Task not found!");
+            }
             if (user.getTasks().contains(taskRepository.findByName(taskname).get())){
                 Task task = taskRepository.findByName(taskname).get();
                 CompletedTask completedTask = new CompletedTask(task.getName(), task.getDescription(), task.getImportance());
