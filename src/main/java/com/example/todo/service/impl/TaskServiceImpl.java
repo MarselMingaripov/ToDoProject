@@ -18,29 +18,31 @@ public class TaskServiceImpl implements TaskService {
     private final UserRepository userRepository;
 
     @Override
-    public Task createTask(Task task){
+    public Task createTask(Task task) {
         return taskRepository.save(task);
     }
 
     @Override
-    public List<Task> getAllTask(){
+    public List<Task> getAllTask() {
         return taskRepository.findAll();
     }
 
     @Override
-    public User addExecutor(Task task, String username) throws Exception {
-        if (userRepository.existsByUsername(username)){
-            User user1 = userRepository.findUserByUsername(username);
-            user1.getTasks().add(task);
-            return userRepository.save(user1);
-        } else {
-            throw new Exception("Bad request!");
-        }
+    public User addExecutor(String taskname, String username) throws Exception {
+        if (taskRepository.existsByName(taskname)) {
+            if (userRepository.existsByUsername(username)) {
+                User user1 = userRepository.findUserByUsername(username);
+                user1.getTasks().add(taskRepository.findByName(taskname).get());
+                return userRepository.save(user1);
+            } else {
+                throw new Exception("Bad request!");
+            }
+        } else throw new Exception("Task is not saved!");
 
     }
 
     @Override
-    public void deleteTask(String name){
+    public void deleteTask(String name) {
         taskRepository.delete(taskRepository.findByName(name).get());
     }
 }

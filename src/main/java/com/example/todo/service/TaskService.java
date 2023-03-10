@@ -10,7 +10,7 @@ public interface TaskService {
 
     List<Task> getAllTask();
 
-    User addExecutor(Task task, String username) throws Exception;
+    User addExecutor(String taskname, String username) throws Exception;
 
     void deleteTask(String name);
 }
