@@ -1,6 +1,8 @@
 package com.example.todo.service.impl;
 
+import com.example.todo.exception.TaskNotFoundException;
 import com.example.todo.exception.TaskValidationException;
+import com.example.todo.exception.UserNotFoundException;
 import com.example.todo.model.Task;
 import com.example.todo.repository.TaskRepository;
 import com.example.todo.security.model.User;
@@ -35,21 +37,23 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public User addExecutor(String taskname, String username) throws Exception {
+    public User addExecutor(String taskname, String username) throws TaskNotFoundException, UserNotFoundException {
         if (taskRepository.existsByName(taskname)) {
             if (userRepository.existsByUsername(username)) {
                 User user1 = userRepository.findUserByUsername(username);
                 user1.getTasks().add(taskRepository.findByName(taskname).get());
                 return userRepository.save(user1);
             } else {
-                throw new Exception("Bad request!");
+                throw new UserNotFoundException("Bad request!");
             }
-        } else throw new Exception("Task is not saved!");
+        } else throw new TaskNotFoundException("Task is not saved!");
 
     }
 
     @Override
-    public void deleteTask(String name) {
-        taskRepository.delete(taskRepository.findByName(name).get());
+    public void deleteTask(String name) throws TaskNotFoundException {
+        if (taskRepository.existsByName(name)) {
+            taskRepository.delete(taskRepository.findByName(name).get());
+        } else throw new TaskNotFoundException("Task not found!");
     }
 }

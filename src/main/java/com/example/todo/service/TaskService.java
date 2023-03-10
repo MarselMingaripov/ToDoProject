@@ -1,6 +1,8 @@
 package com.example.todo.service;
 
+import com.example.todo.exception.TaskNotFoundException;
 import com.example.todo.exception.TaskValidationException;
+import com.example.todo.exception.UserNotFoundException;
 import com.example.todo.model.Task;
 import com.example.todo.security.model.User;
 
@@ -11,9 +13,9 @@ public interface TaskService {
 
     List<Task> getAllTask();
 
-    User addExecutor(String taskname, String username) throws Exception;
+    User addExecutor(String taskname, String username) throws TaskNotFoundException, UserNotFoundException;
 
-    void deleteTask(String name);
+    void deleteTask(String name) throws TaskNotFoundException;
 
 
 }

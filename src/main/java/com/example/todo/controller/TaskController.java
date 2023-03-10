@@ -1,5 +1,6 @@
 package com.example.todo.controller;
 
+import com.example.todo.exception.TaskNotFoundException;
 import com.example.todo.exception.TaskValidationException;
 import com.example.todo.exception.UserDontHasTaskException;
 import com.example.todo.exception.UserNotFoundException;
@@ -48,7 +49,7 @@ public class TaskController {
     @PostMapping("/setExecutor/{username}/{taskname}")
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<User> setExecutor(@RequestParam String taskname, @RequestParam String username) throws Exception {
+    public ResponseEntity<User> setExecutor(@RequestParam String taskname, @RequestParam String username) throws UserNotFoundException, TaskNotFoundException {
         return ResponseEntity.ok().body(taskService.addExecutor(taskname, username));
     }
 
@@ -78,6 +79,14 @@ public class TaskController {
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<CompletedTask> markTaskAsComplited(@RequestParam String username, @RequestParam String taskname) throws UserNotFoundException, UserDontHasTaskException {
         return ResponseEntity.ok().body(completedTaskService.markAsCompleted(username, taskname));
+    }
+
+    @DeleteMapping("{taskname}")
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MOD')")
+    public ResponseEntity<Void> deleteTask(@RequestParam String taskname) throws TaskNotFoundException {
+        taskService.deleteTask(taskname);
+        return ResponseEntity.ok().build();
     }
 
 }
