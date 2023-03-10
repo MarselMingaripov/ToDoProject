@@ -13,6 +13,8 @@ import com.example.todo.service.CompletedTaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class CompletedTaskServiceImpl implements CompletedTaskService {
@@ -41,5 +43,10 @@ public class CompletedTaskServiceImpl implements CompletedTaskService {
         } else {
             throw new UserNotFoundException("User not found!");
         }
+    }
+
+    @Override
+    public List<CompletedTask> showAllCompletedTasks(){
+        return completedTaskRepository.findAll();
     }
 }

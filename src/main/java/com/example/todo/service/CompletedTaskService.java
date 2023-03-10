@@ -6,7 +6,11 @@ import com.example.todo.exception.UserNotFoundException;
 import com.example.todo.model.CompletedTask;
 import com.example.todo.model.Task;
 
+import java.util.List;
+
 public interface CompletedTaskService {
 
     CompletedTask markAsCompleted(String username, String taskname) throws UserNotFoundException, UserDontHasTaskException, TaskNotFoundException;
+
+    List<CompletedTask> showAllCompletedTasks();
 }
