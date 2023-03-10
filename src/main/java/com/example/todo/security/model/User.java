@@ -1,6 +1,7 @@
 package com.example.todo.security.model;
 
 
+import com.example.todo.model.CompletedTask;
 import com.example.todo.model.Task;
 import lombok.Data;
 
@@ -45,6 +46,12 @@ public class User {
     joinColumns = @JoinColumn(name = "user_id"),
     inverseJoinColumns = @JoinColumn(name = "task_id"))
     private Set<Task> tasks = new HashSet<>();
+
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "user_completed_tasks",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "task_id"))
+    private Set<CompletedTask> completedTasks = new HashSet<>();
 
     public User() {
     }

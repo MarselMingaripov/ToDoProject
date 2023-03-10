@@ -1,10 +1,12 @@
 package com.example.todo.service.impl;
 
+import com.example.todo.exception.TaskValidationException;
 import com.example.todo.model.Task;
 import com.example.todo.repository.TaskRepository;
 import com.example.todo.security.model.User;
 import com.example.todo.security.repository.UserRepository;
 import com.example.todo.service.TaskService;
+import com.example.todo.service.ValidationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,10 +18,15 @@ public class TaskServiceImpl implements TaskService {
 
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
+    private final ValidationService validationService;
 
     @Override
-    public Task createTask(Task task) {
-        return taskRepository.save(task);
+    public Task createTask(Task task) throws TaskValidationException {
+        if (validationService.validate(task)) {
+            return taskRepository.save(task);
+        } else {
+            throw new TaskValidationException("Task has invalid parametrs!");
+        }
     }
 
     @Override
