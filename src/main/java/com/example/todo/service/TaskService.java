@@ -15,7 +15,7 @@ public interface TaskService {
 
     User addExecutor(String taskname, String username) throws TaskNotFoundException, UserNotFoundException;
 
-    void deleteTask(String name) throws TaskNotFoundException;
+    boolean deleteTask(String name) throws TaskNotFoundException;
 
 
 }

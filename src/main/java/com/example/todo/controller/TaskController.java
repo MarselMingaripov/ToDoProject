@@ -1,9 +1,6 @@
 package com.example.todo.controller;
 
-import com.example.todo.exception.TaskNotFoundException;
-import com.example.todo.exception.TaskValidationException;
-import com.example.todo.exception.UserDontHasTaskException;
-import com.example.todo.exception.UserNotFoundException;
+import com.example.todo.exception.*;
 import com.example.todo.model.CompletedTask;
 import com.example.todo.model.Task;
 import com.example.todo.security.model.User;
@@ -56,7 +53,7 @@ public class TaskController {
     @PutMapping("/{username}/{taskName}")
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MOD')")
-    public ResponseEntity<Task> updateTaskInUserTaskList(@RequestBody Task task, @RequestParam String username, @RequestParam String taskName) throws Exception {
+    public ResponseEntity<Task> updateTaskInUserTaskList(@RequestBody Task task, @RequestParam String username, @RequestParam String taskName) throws UserNotFoundException, TaskNotFoundException, UserDontHasTaskException, Exception {
         return ResponseEntity.ok().body(userService.updateTask(task, username, taskName));
     }
 

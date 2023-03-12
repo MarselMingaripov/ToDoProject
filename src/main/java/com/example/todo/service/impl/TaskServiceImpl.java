@@ -40,20 +40,23 @@ public class TaskServiceImpl implements TaskService {
     public User addExecutor(String taskname, String username) throws TaskNotFoundException, UserNotFoundException {
         if (taskRepository.existsByName(taskname)) {
             if (userRepository.existsByUsername(username)) {
-                User user1 = userRepository.findUserByUsername(username);
-                user1.getTasks().add(taskRepository.findByName(taskname).get());
-                return userRepository.save(user1);
+                User user = userRepository.findUserByUsername(username);
+                user.getTasks().add(taskRepository.findByName(taskname).get());
+                return userRepository.save(user);
             } else {
-                throw new UserNotFoundException("Bad request!");
+                throw new UserNotFoundException("User not found!");
             }
         } else throw new TaskNotFoundException("Task is not saved!");
 
     }
 
     @Override
-    public void deleteTask(String name) throws TaskNotFoundException {
+    public boolean deleteTask(String name) throws TaskNotFoundException {
         if (taskRepository.existsByName(name)) {
             taskRepository.delete(taskRepository.findByName(name).get());
-        } else throw new TaskNotFoundException("Task not found!");
+            return true;
+        } else {
+            throw new TaskNotFoundException("Task not found!");
+        }
     }
 }
